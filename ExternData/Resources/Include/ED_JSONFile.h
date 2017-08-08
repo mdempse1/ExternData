@@ -31,8 +31,8 @@
 
 void* ED_createJSON(const char* fileName, int verbose);
 void ED_destroyJSON(void* _json);
-double ED_getDoubleFromJSON(void* _json, const char* varName);
-const char* ED_getStringFromJSON(void* _json, const char* varName);
-int ED_getIntFromJSON(void* _json, const char* varName);
+double ED_getDoubleFromJSON(void* _json, const char* varName, int* exist);
+const char* ED_getStringFromJSON(void* _json, const char* varName, int* exist);
+int ED_getIntFromJSON(void* _json, const char* varName, int* exist);
 
 #endif

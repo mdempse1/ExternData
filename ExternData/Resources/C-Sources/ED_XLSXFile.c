@@ -266,7 +266,7 @@ static XmlNodeRef findSheet(XLSXFile* xlsx, char** sheetName)
 
 	HASH_FIND_STR(xlsx->sheets, *sheetName, iter);
 	if (iter == NULL) {
-		ModelicaFormatError("Cannot find sheet name \"%s\" in file \"%s\" of file \"%s\"\n",
+		ModelicaFormatMessage("Cannot find sheet name \"%s\" in file \"%s\" of file \"%s\"\n",
 			*sheetName, WB_XML, xlsx->fileName);
 		return NULL;
 	}
@@ -369,10 +369,11 @@ static char* findCellValue(XLSXFile* xlsx, const char* cellAddress, XmlNodeRef r
 	return token;
 }
 
-double ED_getDoubleFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetName)
+double ED_getDoubleFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetName, int* exist)
 {
 	double ret = 0.;
 	XLSXFile* xlsx = (XLSXFile*)_xlsx;
+	*exist = 1;
 	if (xlsx != NULL) {
 		char* _sheetName = (char*)sheetName;
 		XmlNodeRef root = findSheet(xlsx, &_sheetName);
@@ -389,15 +390,20 @@ double ED_getDoubleFromXLSX(void* _xlsx, const char* cellAddress, const char* sh
 				rc(cellAddress, &row, &col);
 				ModelicaFormatMessage("Cannot get cell (%u,%u) in sheet \"%s\" from file \"%s\"\n",
 					(unsigned int)row, (unsigned int)col, sheetName, xlsx->fileName);
+				*exist = 0;
 			}
+		}
+		else {
+			*exist = 0;
 		}
 	}
 	return ret;
 }
 
-const char* ED_getStringFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetName)
+const char* ED_getStringFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetName, int* exist)
 {
 	XLSXFile* xlsx = (XLSXFile*)_xlsx;
+	*exist = 1;
 	if (xlsx != NULL) {
 		char* _sheetName = (char*)sheetName;
 		XmlNodeRef root = findSheet(xlsx, &_sheetName);
@@ -413,16 +419,21 @@ const char* ED_getStringFromXLSX(void* _xlsx, const char* cellAddress, const cha
 				rc(cellAddress, &row, &col);
 				ModelicaFormatMessage("Cannot get cell (%u,%u) in sheet \"%s\" from file \"%s\"\n",
 					(unsigned int)row, (unsigned int)col, sheetName, xlsx->fileName);
+				*exist = 0;
 			}
+		}
+		else {
+			*exist = 0;
 		}
 	}
 	return "";
 }
 
-int ED_getIntFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetName)
+int ED_getIntFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetName, int* exist)
 {
 	long ret = 0;
 	XLSXFile* xlsx = (XLSXFile*)_xlsx;
+	*exist = 1;
 	if (xlsx != NULL) {
 		char* _sheetName = (char*)sheetName;
 		XmlNodeRef root = findSheet(xlsx, &_sheetName);
@@ -439,7 +450,11 @@ int ED_getIntFromXLSX(void* _xlsx, const char* cellAddress, const char* sheetNam
 				rc(cellAddress, &row, &col);
 				ModelicaFormatMessage("Cannot get cell (%u,%u) in sheet \"%s\" from file \"%s\"\n",
 					(unsigned int)row, (unsigned int)col, sheetName, xlsx->fileName);
+				*exist = 0;
 			}
+		}
+		else {
+			*exist = 0;
 		}
 	}
 	return (int)ret;

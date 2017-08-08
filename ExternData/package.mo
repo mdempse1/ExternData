@@ -270,7 +270,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         extends Interfaces.partialGetReal;
         input String section="" "Section";
         input Types.ExternINIFile ini "External INI file object";
-        external "C" y=ED_getDoubleFromINI(ini, varName, section) annotation(
+        external "C" y=ED_getDoubleFromINI(ini, varName, section, exist) annotation(
           __iti_dll = "ITI_ED_INIFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_INIFile.h\"",
@@ -281,7 +281,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         extends Interfaces.partialGetInteger;
         input String section="" "Section";
         input Types.ExternINIFile ini "External INI file object";
-        external "C" y=ED_getIntFromINI(ini, varName, section) annotation(
+        external "C" y=ED_getIntFromINI(ini, varName, section, exist) annotation(
           __iti_dll = "ITI_ED_INIFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_INIFile.h\"",
@@ -292,8 +292,11 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         extends Interfaces.partialGetBoolean;
         input String section="" "Section";
         input Types.ExternINIFile ini "External INI file object";
+        protected
+          Real aux;
         algorithm
-          y := getReal(ini=ini, varName=varName, section=section) <> 0;
+          (aux, exist) := getReal(ini=ini, varName=varName, section=section);
+          y := aux <> 0;
         annotation(Inline=true);
       end getBoolean;
 
@@ -301,7 +304,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         extends Interfaces.partialGetString;
         input String section="" "Section";
         input Types.ExternINIFile ini "External INI file object";
-        external "C" str=ED_getStringFromINI(ini, varName, section) annotation(
+        external "C" str=ED_getStringFromINI(ini, varName, section, exist) annotation(
           __iti_dll = "ITI_ED_INIFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_INIFile.h\"",
@@ -315,7 +318,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       function getReal "Get scalar Real value from JSON file"
         extends Interfaces.partialGetReal;
         input Types.ExternJSONFile json "External JSON file object";
-        external "C" y=ED_getDoubleFromJSON(json, varName) annotation(
+        external "C" y=ED_getDoubleFromJSON(json, varName, exist) annotation(
           __iti_dll = "ITI_ED_JSONFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_JSONFile.h\"",
@@ -325,7 +328,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       function getInteger "Get scalar Integer value from JSON file"
         extends Interfaces.partialGetInteger;
         input Types.ExternJSONFile json "External JSON file object";
-        external "C" y=ED_getIntFromJSON(json, varName) annotation(
+        external "C" y=ED_getIntFromJSON(json, varName, exist) annotation(
           __iti_dll = "ITI_ED_JSONFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_JSONFile.h\"",
@@ -343,7 +346,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       function getString "Get scalar String value from JSON file"
         extends Interfaces.partialGetString;
         input Types.ExternJSONFile json "External JSON file object";
-        external "C" str=ED_getStringFromJSON(json, varName) annotation(
+        external "C" str=ED_getStringFromJSON(json, varName, exist) annotation(
           __iti_dll = "ITI_ED_JSONFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_JSONFile.h\"",
@@ -391,7 +394,8 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSFile xls "External Excel XLS file object";
         output Real y "Real value";
-        external "C" y=ED_getDoubleFromXLS(xls, cellAddress, sheetName) annotation(
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to 0.0";
+        external "C" y=ED_getDoubleFromXLS(xls, cellAddress, sheetName, exist) annotation(
           __iti_dll = "ITI_ED_XLSFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XLSFile.h\"",
@@ -419,7 +423,8 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSFile xls "External Excel XLS file object";
         output Integer y "Integer value";
-        external "C" y=ED_getIntFromXLS(xls, cellAddress, sheetName) annotation(
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to 0";
+        external "C" y=ED_getIntFromXLS(xls, cellAddress, sheetName, exist) annotation(
           __iti_dll = "ITI_ED_XLSFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XLSFile.h\"",
@@ -432,8 +437,12 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSFile xls "External Excel XLS file object";
         output Boolean y "Boolean value";
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to false";
+        protected
+          Real aux;
         algorithm
-          y := getReal(xls=xls, cellAddress=cellAddress, sheetName=sheetName) <> 0;
+          (aux, exist) := getReal(xls=xls, cellAddress=cellAddress, sheetName=sheetName);
+          y := aux <> 0;
         annotation(Inline=true);
       end getBoolean;
 
@@ -443,7 +452,8 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSFile xls "External Excel XLS file object";
         output String str "String value";
-        external "C" str=ED_getStringFromXLS(xls, cellAddress, sheetName) annotation(
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to an empty string";
+        external "C" str=ED_getStringFromXLS(xls, cellAddress, sheetName, exist) annotation(
           __iti_dll = "ITI_ED_XLSFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XLSFile.h\"",
@@ -460,7 +470,8 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSXFile xlsx "External Excel XLSX file object";
         output Real y "Real value";
-        external "C" y=ED_getDoubleFromXLSX(xlsx, cellAddress, sheetName) annotation(
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to 0.0";
+        external "C" y=ED_getDoubleFromXLSX(xlsx, cellAddress, sheetName, exist) annotation(
           __iti_dll = "ITI_ED_XLSXFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XLSXFile.h\"",
@@ -488,7 +499,8 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSXFile xlsx "External Excel XLSX file object";
         output Integer y "Integer value";
-        external "C" y=ED_getIntFromXLSX(xlsx, cellAddress, sheetName) annotation(
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set 0";
+        external "C" y=ED_getIntFromXLSX(xlsx, cellAddress, sheetName, true) annotation(
           __iti_dll = "ITI_ED_XLSXFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XLSXFile.h\"",
@@ -501,8 +513,12 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSXFile xlsx "External Excel XLSX file object";
         output Boolean y "Boolean value";
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to false";
+        protected
+          Real aux;
         algorithm
-          y := getReal(xlsx=xlsx, cellAddress=cellAddress, sheetName=sheetName) <> 0;
+          (aux, exist) := getReal(xlsx=xlsx, cellAddress=cellAddress, sheetName=sheetName);
+          y := aux <> 0;
         annotation(Inline=true);
       end getBoolean;
 
@@ -512,7 +528,8 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
         input String sheetName="" "Sheet name";
         input Types.ExternXLSXFile xlsx "External Excel XLSX file object";
         output String str "String value";
-        external "C" str=ED_getStringFromXLSX(xlsx, cellAddress, sheetName) annotation(
+        output Boolean exist "= true, if cellAddress exits; = false, if it does not exist and y is set to an empty string";
+        external "C" str=ED_getStringFromXLSX(xlsx, cellAddress, sheetName, exist) annotation(
           __iti_dll = "ITI_ED_XLSXFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XLSXFile.h\"",
@@ -526,7 +543,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       function getReal "Get scalar Real value from XML file"
         extends Interfaces.partialGetReal;
         input Types.ExternXMLFile xml "External XML file object";
-        external "C" y=ED_getDoubleFromXML(xml, varName) annotation(
+        external "C" y=ED_getDoubleFromXML(xml, varName, exist) annotation(
           __iti_dll = "ITI_ED_XMLFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XMLFile.h\"",
@@ -563,7 +580,7 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       function getInteger "Get scalar Integer value from XML file"
         extends Interfaces.partialGetInteger;
         input Types.ExternXMLFile xml "External XML file object";
-        external "C" y=ED_getIntFromXML(xml, varName) annotation(
+        external "C" y=ED_getIntFromXML(xml, varName, exist) annotation(
           __iti_dll = "ITI_ED_XMLFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XMLFile.h\"",
@@ -573,15 +590,18 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       function getBoolean "Get scalar Boolean value from XML file"
         extends Interfaces.partialGetBoolean;
         input Types.ExternXMLFile xml "External XML file object";
+        protected
+          Real aux;
         algorithm
-          y := getReal(xml=xml, varName=varName) <> 0;
+          (aux, exist) := getReal(xml=xml, varName=varName);
+          y := aux <> 0;
         annotation(Inline=true);
       end getBoolean;
 
       function getString "Get scalar String value from XML file"
         extends Interfaces.partialGetString;
         input Types.ExternXMLFile xml "External XML file object";
-        external "C" str=ED_getStringFromXML(xml, varName) annotation(
+        external "C" str=ED_getStringFromXML(xml, varName, exist) annotation(
           __iti_dll = "ITI_ED_XMLFile.dll",
           __iti_dllNoExport = true,
           Include = "#include \"ED_XMLFile.h\"",
@@ -598,24 +618,28 @@ package ExternData "Library for data I/O of CSV, INI, JSON, MATLAB MAT, Excel XL
       extends Modelica.Icons.Function;
       input String varName "Key";
       output Real y "Real value";
+      output Boolean exist "= true, if varName exits; = false, if it does not exist and y is set to 0.0";
     end partialGetReal;
 
     partial function partialGetInteger
       extends Modelica.Icons.Function;
       input String varName "Key";
       output Integer y "Integer value";
+      output Boolean exist "= true, if varName exits; = false, if it does not exist and y is set to 0";
     end partialGetInteger;
 
     partial function partialGetBoolean
       extends Modelica.Icons.Function;
       input String varName "Key";
       output Boolean y "Boolean value";
+      output Boolean exist "= true, if varName exits; = false, if it does not exist and y is set to false";
     end partialGetBoolean;
 
     partial function partialGetString
       extends Modelica.Icons.Function;
       input String varName "Key";
       output String str "String value";
+      output Boolean exist "= true, if varName exits; = false, if it does not exist and str is set to a an empty string";
     end partialGetString;
   end Interfaces;
 

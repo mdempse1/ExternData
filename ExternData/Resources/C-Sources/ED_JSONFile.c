@@ -116,40 +116,36 @@ static char* findValue(JsonNodeRef* root, const char* varName, const char* fileN
 	char* token = NULL;
 	char* buf = strdup(varName);
 	if (buf != NULL) {
-		int elementError = 0;
+		char* key = NULL;
 		char* nextToken = NULL;
 		token = strtok_r(buf, ".", &nextToken);
-		if (token == NULL) {
-			elementError = 1;
-		}
-		while (token != NULL && elementError == 0) {
-			size_t i;
-			int foundToken = 0;
-			for (i = 0; i < JsonNode_getChildCount(*root); i++) {
-				JsonNodeRef child = JsonNode_findChild(*root, token, JSON_OBJ);
-				if (child != NULL) {
-					*root = child;
-					token = strtok_r(NULL, ".", &nextToken);
-					foundToken = 1;
-					break;
-				}
+		while (token != NULL) {
+			JsonNodeRef iter = JsonNode_findChild(*root, token, JSON_OBJ);
+			if (NULL != iter) {
+				*root = iter;
+				token = strtok_r(NULL, ".", &nextToken);
 			}
-			if (foundToken == 0) {
-				elementError = 1;
+			else {
+				key = token;
+				token = strtok_r(NULL, ".", &nextToken);
+				break;
 			}
 		}
-		if (token == NULL) {
+		if (NULL != key && NULL != *root && NULL == token) {
+			token = JsonNode_getPairValue(*root, key);
 			free(buf);
-			ModelicaFormatError("Cannot read element \"%s\" from file \"%s\"\n",
-				varName, fileName);
+			if (NULL == token) {
+				ModelicaFormatMessage("Cannot read element \"%s\" from file \"%s\"\n",
+					varName, fileName);
+				*root = NULL;
+			}
 		}
 		else {
-			token = JsonNode_getPairValue(*root, token);
 			free(buf);
-			if (token == NULL) {
-				ModelicaFormatError("Cannot read element \"%s\" from file \"%s\"\n",
-					varName, fileName);
-			}
+			ModelicaFormatMessage("Cannot read element \"%s\" from file \"%s\"\n",
+				varName, fileName);
+			*root = NULL;
+			token = NULL;
 		}
 	}
 	else {
@@ -158,10 +154,11 @@ static char* findValue(JsonNodeRef* root, const char* varName, const char* fileN
 	return token;
 }
 
-double ED_getDoubleFromJSON(void* _json, const char* varName)
+double ED_getDoubleFromJSON(void* _json, const char* varName, int* exist)
 {
 	double ret = 0.;
 	JSONFile* json = (JSONFile*)_json;
+	*exist = 1;
 	if (json != NULL) {
 		JsonNodeRef root = json->root;
 		char* token = findValue(&root, varName, json->fileName);
@@ -171,17 +168,22 @@ double ED_getDoubleFromJSON(void* _json, const char* varName)
 					token, json->fileName);
 			}
 		}
-		else {
-			ModelicaFormatError("Cannot read double value from file \"%s\"\n",
+		else if (NULL != root) {
+			ModelicaFormatMessage("Cannot read double value from file \"%s\"\n",
 				json->fileName);
+			*exist = 0;
+		}
+		else {
+			*exist = 0;
 		}
 	}
 	return ret;
 }
 
-const char* ED_getStringFromJSON(void* _json, const char* varName)
+const char* ED_getStringFromJSON(void* _json, const char* varName, int* exist)
 {
 	JSONFile* json = (JSONFile*)_json;
+	*exist = 1;
 	if (json != NULL) {
 		JsonNodeRef root = json->root;
 		char* token = findValue(&root, varName, json->fileName);
@@ -190,18 +192,23 @@ const char* ED_getStringFromJSON(void* _json, const char* varName)
 			strcpy(ret, token);
 			return (const char*)ret;
 		}
-		else {
-			ModelicaFormatError("Cannot read value from file \"%s\"\n",
+		else if (NULL != root) {
+			ModelicaFormatMessage("Cannot read value from file \"%s\"\n",
 				json->fileName);
+			*exist = 0;
+		}
+		else {
+			*exist = 0;
 		}
 	}
 	return "";
 }
 
-int ED_getIntFromJSON(void* _json, const char* varName)
+int ED_getIntFromJSON(void* _json, const char* varName, int* exist)
 {
 	long ret = 0;
 	JSONFile* json = (JSONFile*)_json;
+	*exist = 1;
 	if (json != NULL) {
 		JsonNodeRef root = json->root;
 		char* token = findValue(&root, varName, json->fileName);
@@ -211,9 +218,13 @@ int ED_getIntFromJSON(void* _json, const char* varName)
 					token, json->fileName);
 			}
 		}
-		else {
-			ModelicaFormatError("Cannot read int value from file \"%s\"\n",
+		else if (NULL != root) {
+			ModelicaFormatMessage("Cannot read int value from file \"%s\"\n",
 				json->fileName);
+			*exist = 0;
+		}
+		else {
+			*exist = 0;
 		}
 	}
 	return (int)ret;
