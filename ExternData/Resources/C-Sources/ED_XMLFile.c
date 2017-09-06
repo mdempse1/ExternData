@@ -232,7 +232,7 @@ void ED_getDoubleArray1DFromXML(void* _xml, const char* varName, double* a, size
 		XmlNodeRef root = xml->root;
 		int iLevel = 0;
 		char* token = findValue(&root, varName, xml->fileName);
-		while (token == NULL && XmlNode_getChildCount(root) > 0) {
+		while (NULL == token && NULL != root && XmlNode_getChildCount(root) > 0) {
 			/* Try children if root is empty */
 			root = XmlNode_getChild(root, 0);
 			XmlNode_getValue(root, &token);
@@ -311,7 +311,7 @@ void ED_getDoubleArray1DFromXML(void* _xml, const char* varName, double* a, size
 				ModelicaError("Memory allocation error\n");
 			}
 		}
-		else {
+		else if (NULL != root) {
 			ModelicaFormatError("Error in line %i: Cannot read empty element \"%s\" in file \"%s\"\n",
 				XmlNode_getLine(root), varName, xml->fileName);
 		}
